@@ -46,6 +46,17 @@ static int cmd_si(char *args){
 	return 0;
 }
 
+static int cmd_info(char *args){
+	if(args[0] == 'r'){
+		int i;
+		for(i = R_EAX; i <= R_EDI; i++){
+			printf("$%s\t0x%08x\n", regsl[i], reg_l(i));
+		}
+		printf("$eip\t0x%08x\n", cpu.eip);
+	}
+	return 0;
+}
+
 static struct {
 	char *name;
 	char *description;
@@ -54,7 +65,8 @@ static struct {
 	{ "help", "Display informations about all supported commands", cmd_help },
 	{ "c", "Continue the execution of the program", cmd_c },
 	{ "q", "Exit NEMU", cmd_q },
-	{ "si", "single step execution", cmd_si},
+	{ "si", "single step execution", cmd_si },
+	{ "info", "info registers", cmd_info },
 
 	/* TODO: Add more commands */
 
