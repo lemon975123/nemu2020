@@ -58,14 +58,15 @@ static int cmd_info(char *args){
 }
 
 static int cmd_x(char *args){
-	if(args == NULL) printf("Wrong Command!\n");
-	else{
-		int num, exprs;
-		sscanf(args, "%d%x", &num, &exprs);
-		int i;
-		for(i = 0; i < num; i++){
-			printf("0x%8x 0x%x\n", exprs+i*32, swaddr_read(exprs+i*32, 32));
-		}
+	if(args == NULL){
+		printf("Wrong Command!\n");
+		return 0;
+	}
+	int num, exprs;
+	sscanf(args, "%d%x", &num, &exprs);
+	int i;
+	for(i = 0; i < num; i++){
+		printf("0x%8x 0x%x\n", exprs+i*32, swaddr_read(exprs+i*32, 32));
 	}
 	return 0;
 }
@@ -80,7 +81,7 @@ static struct {
 	{ "q", "Exit NEMU", cmd_q },
 	{ "si", "single step execution", cmd_si },
 	{ "info", "info registers", cmd_info },
-	{ "x", "Scan Memory", cmd_x},
+	{ "x", "Scan Memory", cmd_x },
 
 	/* TODO: Add more commands */
 
