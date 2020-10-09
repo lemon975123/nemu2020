@@ -29,7 +29,7 @@ static struct rule {
 	{"/", '/'},
 	{"\\(", L_PARENTHESE},
 	{"\\)", R_PARENTHESE},
-	{"\\b[0-9]+\\b", NUMBER},
+	{"\\[0-9]+", NUMBER},
 	
 };
 
