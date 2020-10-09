@@ -71,6 +71,19 @@ static int cmd_x(char *args){
 	return 0;
 }
 
+static int cmd_p(char *args){
+	if(args == NULL){
+		printf("Command format: \"p EXPR\"");
+		return 0;
+	}
+
+	bool success;
+	uint32_t val = expr(args, &success);
+	if(!success) printf("invalid expression: '%s'\n", args);
+	else printf("%d\n", val);
+	return 0;
+}
+
 static struct {
 	char *name;
 	char *description;
@@ -82,7 +95,7 @@ static struct {
 	{ "si", "single step execution", cmd_si },
 	{ "info", "info registers", cmd_info },
 	{ "x", "Scan Memory", cmd_x },
-
+	{ "p", "Evaluate an expression", cmd_p},
 	/* TODO: Add more commands */
 
 };
