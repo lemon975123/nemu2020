@@ -125,17 +125,16 @@ static bool make_token(char *e) {
 
 
 bool check_parenthese(int p,int q){
-	int i;
-	if(tokens[p].type == '(' && tokens[q].type == ')'){
-		int lc=0,rc=0;
-		for(i=p+1;i<q;i++){
-			if(tokens[i].type=='(') lc++;
-			else if(tokens[i].type==')') rc++;
-			if(rc>lc)return false;
-		}
-		if(lc==rc)return true;
+	int i,tag=0;
+	if(tokens[p].type != '(' || tokens[q].type != ')') return false;
+	for(i=p;i<=q;i++){
+		if(tokens[i].type=='(') tag++;
+		else if(tokens[i].type==')') tag--;
+		if(tag==0&&i<q)return false;
 	}
-	return false;
+	if(tag!=0)return false;
+	
+	return true;;
 }
 
 int dominant_operator(int p, int q){
