@@ -130,7 +130,7 @@ bool check_parenthese(int p,int q){
 	for(i=p;i<=q;i++){
 		if(tokens[i].type=='(') tag++;
 		else if(tokens[i].type==')') tag--;
-		if(tag==0&&i<q)return false;
+		if(tag<0&&i<q)return false;
 	}
 	if(tag!=0)return false;
 	
