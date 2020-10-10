@@ -129,8 +129,8 @@ bool check_parenthese(int p,int q){
 	if(tokens[p].type != '(' || tokens[q].type != ')') return false;
 	for(i=p+1;i<q;i++){
 		if(tokens[i].type=='(') tag++;
-		else if(tokens[i].type==')') tag--;
-		if(tag<0&&i<q)return false;
+		if(tokens[i].type==')') tag--;
+		if(tag<0)return false;
 	}
 	if(tag!=0)return false;
 	
