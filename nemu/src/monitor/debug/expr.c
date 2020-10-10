@@ -85,6 +85,8 @@ strncpy(tokens[nr_token].str, substr_start, substr_len);
 				 */
 
 				switch(rules[i].token_type) {
+					case 0:break;
+					
 					tokens[nr_token].type = rules[i].token_type;
 					nr_token++;
 					;
