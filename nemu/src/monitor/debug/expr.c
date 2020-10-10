@@ -183,9 +183,10 @@ uint32_t expr(char *e, bool *success) {
 	}
 
 	/* TODO: Insert codes to evaluate the expression. */
-	int p=0,q=nr_token;
-	return eval(p,q);
-	assert(0);
-	return 0;
+	else{
+		*success=true;
+		int p=0,q=nr_token;
+		return eval(p,q);
+	}
 }
 
