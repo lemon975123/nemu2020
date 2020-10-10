@@ -185,8 +185,8 @@ uint32_t expr(char *e, bool *success) {
 	/* TODO: Insert codes to evaluate the expression. */
 	else{
 		*success=true;
-		int p=0,q=nr_token;
-		printf("%d  ", nr_token);
+		int p=0,q=31;
+		printf("%d  ", q);
 		return eval(p,q);
 	}
 }
