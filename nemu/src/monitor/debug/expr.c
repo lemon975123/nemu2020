@@ -7,8 +7,8 @@
 #include <regex.h>
 
 enum {
-	NOTYPE = 256, EQ,
-	NUMBER, TK_L, TK_R,
+	NOTYPE = 256, EQ,NEQ,AND,OR,HNUMBER,REGISTER,MARK,
+	NUMBER,POINTOR,MINUS,
 	/* TODO: Add more token types */
 
 };
@@ -16,6 +16,7 @@ enum {
 static struct rule {
 	char *regex;
 	int token_type;
+	int priority;
 } rules[] = {
 
 	/* TODO: Add more rules.
@@ -25,12 +26,20 @@ static struct rule {
 	{" +",	NOTYPE},				// spaces
 	{"\\+", '+'},					// plus
 	{"==", EQ},						// equal
-	{"\\*", '*'},
-	{"/", '/'},
-	{"\\(", TK_L},
-	{"\\)", TK_R},
-	{"\\b[0-9]+\\b", NUMBER},
-	{"-", '-'},
+	{"\\b[0-9]+\\b",NUMBER,0},
+	{"\\b0[xX][0-9a-fA-F]+\\b",HNUMBER,0},
+	{"\\$[a-zA-Z]+", REGISTER,0},
+	{"\\b[a-zA-Z_0-9]+",MARK,0},
+	{"!=",NEQ,3},
+	{"!",'!',6},
+	{"\\*",'*',5},
+	{"/",'/',5},
+	{"	+",NOTYPE,0},
+	{"-",'-',4},
+	{"&&",AND,2},
+	{"\\|\\|",OR,1},
+	{"\\(",'(',7},
+	{"\\)",')',7},
 	
 };
 
@@ -58,6 +67,7 @@ void init_regex() {
 typedef struct token {
 	int type;
 	char str[32];
+	int priority;
 } Token;
 
 Token tokens[32];
@@ -75,8 +85,8 @@ static bool make_token(char *e) {
 		for(i = 0; i < NR_REGEX; i ++) {
 			if(regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
 				char *substr_start = e + position;
+				char *tmp=e+position+1;
 				int substr_len = pmatch.rm_eo;
-strncpy(tokens[nr_token].str, substr_start, substr_len);
 				Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s", i, rules[i].regex, position, substr_len, substr_len, substr_start);
 				position += substr_len;
 
@@ -86,11 +96,20 @@ strncpy(tokens[nr_token].str, substr_start, substr_len);
 				 */
 
 				switch(rules[i].token_type) {
-					case 0:break;
-					
-					tokens[nr_token].type = rules[i].token_type;
-					nr_token++;
-					;
+					case NOTYPE:break;
+					case REGISTER:
+						tokens[nr_token].type = rules[i].token_type;
+						tokens[nr_token].priority=rules[i].priority;
+						strncpy(tokens[nr_token].str, tmp, substr_len-1);
+						tokens[nr_token].str[substr_len-1]='\0';
+						nr_token++;
+						break;
+					default:
+						tokens[nr_token].type=rules[i].token_type;
+						tokens[nr_token].priority=rules[i].priority;
+						strncpy(tokens[nr_token].str, substr_start, substr_len);
+						tokens[nr_token].str[substr_len]='\0';
+						nr_token++;
 				}
 
 				break;
@@ -108,72 +127,124 @@ strncpy(tokens[nr_token].str, substr_start, substr_len);
 
 
 bool check_parenthese(int p,int q){
-	int i,tag=0;
-	if(tokens[p].type!=5||tokens[q].type!=6)
-		for(i=p;i<=q;i++){
-			if(tokens[i].type==5) tag++;
-			else if(tokens[i].type==6) tag--;
-			if(tag==0&&i<q)return false;
+	int i;
+	if(tokens[p].type == '(' && tokens[q].type == ')'){
+		int lc=0,rc=0;
+		for(i=p+1;i<q;i++){
+			if(tokens[i].type=='(') lc++;
+			else if(tokens[i].type==')') rc++;
+			if(rc>lc)return false;
 		}
-	if(tag!=0) return false;
-	return true;
-}
-
-int pir(int type){
-	if(type==1||type==8)return 1;
-	else return 2;
+		if(lc==rc)return true;
+	}
+	return false;
 }
 
 int dominant_operator(int p, int q){
-	int i, dom=p, left=0;
-	int pr=-1;
+	int i, j;
+	int min_priority=10;
+	int oper=1;
 	for(i=p;i<=q;i++){
-		if(tokens[i].type==5){
-			left+=1;
-			i++;
-			while(1){
-				if(tokens[i].type==5)left+=1;
-				else if(tokens[i].type==6)left--;
-				i++;
-				if(left==0) break;
+		if(tokens[i].type==NUMBER||tokens[i].type==HNUMBER||tokens[i].type==REGISTER||tokens[i].type==MARK) continue;
+		int cnt = 0;
+		bool key = true;
+		for(j=i-1;j>=1;j--){
+			if(tokens[j].type=='(' && !cnt){
+				key = false;
+				break;
 			}
-			if(i>q)break;
+			if(tokens[j].type=='(')cnt--;
+			if(tokens[j].type==')')cnt++;
 		}
-		else if(tokens[i].type==7)continue;
-		else if(pir(tokens[i].type)>pr){
-			pr=pir(tokens[i].type);
-			dom=i;
+		if(!key)continue;
+		if(tokens[i].priority <= min_priority){
+			min_priority=tokens[i].priority;
+			oper=i;
 		}
 	}
-	return dom;
+	return oper;
 }
 
-int eval(int p,int q){
+uint32_t eval(int p,int q){
         if(p>q){
-        	printf("Bad expression");
+        	Assert(p>q,"Bad expression!\n");
+		return 0;
         }
         else if(p==q){
-		if(tokens[p].type==7){printf("%d",tokens[p].str[p]); return (int)tokens[p].str[p];}
-        }
+		uint32_t num=0;
+		if(tokens[p].type==NUMBER) sscanf(tokens[p].str,"%d",&num);
+		if(tokens[p].type==HNUMBER) sscanf(tokens[p].str,"%x",&num);
+		if(tokens[p].type==REGISTER){
+        		if(strlen(tokens[p].str)==3){
+				int i;
+				for(i=R_EAX;i<=R_EDI;i++)
+					if(strcmp(tokens[p].str, regsl[i])==0) break;
+				if(i>R_EDI)
+					if(strcmp(tokens[p].str, "eip")==0) num=cpu.eip;
+					else Assert(1, "no this register!\n");
+				else num=reg_l(i);
+			}
+			else if(strlen(tokens[p].str)==2){
+				if(tokens[p].str[1]=='x'||tokens[p].str[1]=='p'||tokens[p].str[1]=='i'){
+					int i;
+					for(i=R_AX;i<=R_DI;i++)
+						if(strcmp(tokens[p].str, regsw[i])==0) break;
+					num=reg_w(i);
+				}
+				else if(tokens[p].str[1]=='1'||tokens[p].str[1]=='h'){
+					int i;
+					for(i=R_AL;i<=R_BH;i++)
+                                                if(strcmp(tokens[p].str, regsb[i])==0) break;
+                                        num=reg_b(i);
+				}
+				else assert(1);
+			}
+		}
+//		if(tokens[p].type==MARK){
+//			int i;
+//			for(i=0;i<nr_symtab_entry;i++){
+//				if((symtab[i].st_info&0xf)==STT_OBJECT){
+//					char tmp[32];
+//					int tmplen=symtab[i+1].st_name-symtab[i].st_name-1;
+//					strncpy(tmp, strtab+symtab[i].st_name,tmplen);
+//					tmp[tmplen]='\0';
+//					if(strcmp(tmp, tokens[p].str)==0) num =symtab[i].st_value;
+//				}
+//			}
+//		}
+		return num;
+	}
 	else if(check_parenthese(p,q)==true){
 
 		return eval(p+1,q-1);
 	}
 	else{
 		int op = dominant_operator(p,q);
-		int val1=eval(p,op-1);
-		int val2=eval(op+1,q);
-printf("%d  ",tokens[op].type);
-
+		if(p==op||tokens[op].type==POINTOR||tokens[op].type==MINUS||tokens[op].type=='!'){
+			uint32_t val=eval(p+1,q);
+			switch(tokens[op].type){
+				case MINUS:return -val;
+				case '!':return !val;
+				default:Assert(1, "default\n");
+			}
+		}
+		uint32_t val1=eval(p,op-1);
+		uint32_t val2=eval(op+1,q);
 		switch(tokens[op].type){
-			case 1:return val1+val2;
-			case 8:return val1-val2;
-			case 3:return val1*val2;
-			case 4:return val1/val2;
-			default:assert(0);
+			case '+':return val1+val2;
+			case '-':return val1-val2;
+			case '*':return val1*val2;
+			case '/':return val1/val2;
+			case EQ:return val1==val2;
+			case NEQ:return val1!=val2;
+			case AND:return val1&&val2;
+			case OR:return val1||val2;
+			default: break;
 		}
 	}
-	return 0;
+	assert(1);
+
+	return -123456;
 }
 
 
@@ -182,13 +253,19 @@ uint32_t expr(char *e, bool *success) {
 		*success = false;
 		return 0;
 	}
-
-	/* TODO: Insert codes to evaluate the expression. */
-	else{
-		*success=true;
-		int p=0,q=2;
-		printf("%d  ", q);
-		return eval(p,q);
+	int i;
+	for(i=0;i<nr_token;i++){
+		if(tokens[i].type=='*'&&(i==0||(tokens[i-1].type!=NUMBER && tokens[i-1].type!=HNUMBER && tokens[i-1].type !=REGISTER && tokens[i-1].type != MARK && tokens[i-1].type !=')'))){
+			tokens[i].type=POINTOR;
+			tokens[i].priority=6;
+		}
+		if(tokens[i].type=='-'&&(i==0||(tokens[i-1].type!=NUMBER && tokens[i-1].type!=HNUMBER && tokens[i-1].type !=REGISTER && tokens[i-1].type != MARK && tokens[i-1].type !=')'))){
+			tokens[i].type=MINUS;
+                        tokens[i].priority=6;
+		}
 	}
+	/* TODO: Insert codes to evaluate the expression. */
+	*success = true;
+	return eval(0, nr_token-1);
 }
 
