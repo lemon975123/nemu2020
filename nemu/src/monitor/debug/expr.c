@@ -87,7 +87,7 @@ strncpy(tokens[nr_token].str, substr_start, substr_len);
 				switch(rules[i].token_type) {
 					tokens[nr_token].type = rules[i].token_type;
 					nr_token++;
-				//	default: panic("please implement me");
+					default: panic("please implement me");
 				}
 
 				break;
