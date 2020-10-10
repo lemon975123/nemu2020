@@ -138,29 +138,21 @@ bool check_parenthese(int p,int q){
 }
 
 int dominant_operator(int p, int q){
-	int i, j;
-	int min_priority=10;
-	int oper=1;
-	for(i=p;i<=q;i++){
-		if(tokens[i].type==NUMBER||tokens[i].type==HNUMBER||tokens[i].type==REGISTER) continue;
-		int cnt = 0;
-		bool key = true;
-		for(j=i-1;j>=1;j--){
-			if(tokens[j].type=='(' && !cnt){
-				key = false;
-				break;
-			}
-			if(tokens[j].type=='(')cnt--;
-			if(tokens[j].type==')')cnt++;
-		}
-		if(!key)continue;
-		if(tokens[i].priority <= min_priority){
-			min_priority=tokens[i].priority;
-			oper=i;
-		}
-	}
-	return oper;
-}
+	int i;
+	int pos=0;
+	int priority=-1;
+	int in_par=0;
+	for(i=p;i<q;++i){
+		int t=tokens[i].type;
+		int p=tokens[i].priority;
+
+		if(t==NUMBER||t==HNUMBER||t==REGISTER) continue;
+		else if(t=='('){in_par++; continue;}
+		else if(t==')'){in_par--; continue;}
+		else{
+			if(p>=priority&&in_par==0){
+				priority=p;
+				pos=i;}}}return pos;}
 
 uint32_t eval(int p,int q){
         if(p>q){
