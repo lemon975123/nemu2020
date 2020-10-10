@@ -87,7 +87,7 @@ strncpy(tokens[nr_token].str, substr_start, substr_len);
 				switch(rules[i].token_type) {
 					tokens[nr_token].type = rules[i].token_type;
 					nr_token++;
-					default: panic("please implement me");
+					;
 				}
 
 				break;
@@ -110,7 +110,7 @@ uint32_t expr(char *e, bool *success) {
 	}
 
 	/* TODO: Insert codes to evaluate the expression. */
-	panic("please implement me");
+	assert(0);
 	return 0;
 }
 
