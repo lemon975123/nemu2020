@@ -153,7 +153,7 @@ int eval(int p,int q){
         	printf("Bad expression");
         }
         else if(p==q){
-		if(tokens[p].type==7) return (int)tokens[p].str[p];
+		if(tokens[p].type==7){printf("%d",tokens[p].str[p]); return (int)tokens[p].str[p];}
         }
 	else if(check_parenthese(p,q)==true){
 
