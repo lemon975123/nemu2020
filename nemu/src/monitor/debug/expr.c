@@ -151,7 +151,6 @@ int dominant_operator(int p, int q){
 int eval(int p,int q){
         if(p>q){
         	printf("Bad expression");
-		return 0;
         }
         else if(p==q){
 		if(tokens[p].type==7) return (int)tokens[p].str[p];
