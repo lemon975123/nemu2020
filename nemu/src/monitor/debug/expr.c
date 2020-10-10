@@ -7,8 +7,7 @@
 #include <regex.h>
 
 enum {
-	NOTYPE = 256, EQ,NEQ,AND,OR,HNUMBER,REGISTER,MARK,
-	NUMBER,POINTOR,MINUS,
+	NOTYPE = 256, EQ,NEQ,AND,OR,HNUMBER,REGISTER,NUMBER,POINTOR,MINUS,
 	/* TODO: Add more token types */
 
 };
@@ -29,7 +28,6 @@ static struct rule {
 	{"\\b[0-9]+\\b",NUMBER,0},
 	{"\\b0[xX][0-9a-fA-F]+\\b",HNUMBER,0},
 	{"\\$[a-zA-Z]+", REGISTER,0},
-	{"\\b[a-zA-Z_0-9]+",MARK,0},
 	{"!=",NEQ,3},
 	{"!",'!',6},
 	{"\\*",'*',5},
@@ -145,7 +143,7 @@ int dominant_operator(int p, int q){
 	int min_priority=10;
 	int oper=1;
 	for(i=p;i<=q;i++){
-		if(tokens[i].type==NUMBER||tokens[i].type==HNUMBER||tokens[i].type==REGISTER||tokens[i].type==MARK) continue;
+		if(tokens[i].type==NUMBER||tokens[i].type==HNUMBER||tokens[i].type==REGISTER) continue;
 		int cnt = 0;
 		bool key = true;
 		for(j=i-1;j>=1;j--){
@@ -255,11 +253,11 @@ uint32_t expr(char *e, bool *success) {
 	}
 	int i;
 	for(i=0;i<nr_token;i++){
-		if(tokens[i].type=='*'&&(i==0||(tokens[i-1].type!=NUMBER && tokens[i-1].type!=HNUMBER && tokens[i-1].type !=REGISTER && tokens[i-1].type != MARK && tokens[i-1].type !=')'))){
+		if(tokens[i].type=='*'&&(i==0||(tokens[i-1].type!=NUMBER && tokens[i-1].type!=HNUMBER && tokens[i-1].type !=REGISTER && tokens[i-1].type !=')'))){
 			tokens[i].type=POINTOR;
 			tokens[i].priority=6;
 		}
-		if(tokens[i].type=='-'&&(i==0||(tokens[i-1].type!=NUMBER && tokens[i-1].type!=HNUMBER && tokens[i-1].type !=REGISTER && tokens[i-1].type != MARK && tokens[i-1].type !=')'))){
+		if(tokens[i].type=='-'&&(i==0||(tokens[i-1].type!=NUMBER && tokens[i-1].type!=HNUMBER && tokens[i-1].type !=REGISTER && tokens[i-1].type !=')'))){
 			tokens[i].type=MINUS;
                         tokens[i].priority=6;
 		}
