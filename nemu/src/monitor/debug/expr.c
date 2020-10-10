@@ -163,6 +163,7 @@ int eval(int p,int q){
 		int op = dominant_operator(p,q);
 		int val1=eval(p,op-1);
 		int val2=eval(op+1,q);
+printf("%d  ",tokens[op].type);
 
 		switch(tokens[op].type){
 			case 1:return val1+val2;
@@ -185,7 +186,7 @@ uint32_t expr(char *e, bool *success) {
 	/* TODO: Insert codes to evaluate the expression. */
 	else{
 		*success=true;
-		int p=0,q=31;
+		int p=0,q=2;
 		printf("%d  ", q);
 		return eval(p,q);
 	}
