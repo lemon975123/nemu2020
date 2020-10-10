@@ -79,8 +79,8 @@ static int cmd_p(char *args){
 
 	bool success;
 	uint32_t val = expr(args, &success);
-	if(!success) printf("invalid expression: '%s'\n", args);
-	else printf("%d\n", val);
+	if(success) printf("0x%x:\t%d\n",val,val);
+	else assert(0);
 	return 0;
 }
 
