@@ -7,8 +7,8 @@
 #include <regex.h>
 
 enum {
-	NOTYPE = 256, EQ=254,
-	NUMBER=253, L_PARENTHESE=251, R_PARENTHESE=252,
+	NOTYPE = 256, EQ,
+	NUMBER, TK_L, TK_R,
 	/* TODO: Add more token types */
 
 };
@@ -27,9 +27,10 @@ static struct rule {
 	{"==", EQ},						// equal
 	{"\\*", '*'},
 	{"/", '/'},
-	{"\\(", L_PARENTHESE},
-	{"\\)", R_PARENTHESE},
+	{"\\(", TK_L},
+	{"\\)", TK_R},
 	{"\\b[0-9]+\\b", NUMBER},
+	{"-", '-'},
 	
 };
 
@@ -105,6 +106,77 @@ strncpy(tokens[nr_token].str, substr_start, substr_len);
 	return true; 
 }
 
+
+bool check_parenthese(int p,int q){
+	int i,tag=0;
+	if(tokens[p].type!=5||tokens[q].type!=6)
+		for(i=p;i<=q;i++){
+			if(tokens[i].type==5) tag++;
+			else if(tokens[i].type==6) tag--;
+			if(tag==0&&i<q)return false;
+		}
+	if(tag!=0) return false;
+	return true;
+}
+
+int pir(int type){
+	if(type==1||type==8)return 1;
+	else return 2;
+}
+
+int dominant_operator(int p, int q){
+	int i, dom=p, left=0;
+	int pr=-1;
+	for(i=p;i<=q;i++){
+		if(tokens[i].type==5){
+			left+=1;
+			i++;
+			while(1){
+				if(tokens[i].type==5)left+=1;
+				else if(tokens[i].type==6)left--;
+				i++;
+				if(left==0) break;
+			}
+			if(i>q)break;
+		}
+		else if(tokens[i].type==7)continue;
+		else if(pir(tokens[i].type)>pr){
+			pr=pir(tokens[i].type);
+			dom=i;
+		}
+	}
+	return dom;
+}
+
+int eval(int p,int q){
+        if(p>q){
+        	printf("Bad expression");
+		return 0;
+        }
+        else if(p==q){
+		if(tokens[p].type==7) return (int)tokens[p].str[p];
+        }
+	else if(check_parenthese(p,q)==true){
+
+		return eval(p+1,q-1);
+	}
+	else{
+		int op = dominant_operator(p,q);
+		int val1=eval(p,op-1);
+		int val2=eval(op+1,q);
+
+		switch(tokens[op].type){
+			case 1:return val1+val2;
+			case 8:return val1-val2;
+			case 3:return val1*val2;
+			case 4:return val1/val2;
+			default:assert(0);
+		}
+	}
+	return 0;
+}
+
+
 uint32_t expr(char *e, bool *success) {
 	if(!make_token(e)) {
 		*success = false;
@@ -112,6 +184,8 @@ uint32_t expr(char *e, bool *success) {
 	}
 
 	/* TODO: Insert codes to evaluate the expression. */
+	int p=0,q=nr_token;
+	return eval(p,q);
 	assert(0);
 	return 0;
 }
