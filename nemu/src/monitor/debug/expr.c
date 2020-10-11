@@ -211,6 +211,7 @@ uint32_t eval(int p,int q){
 		if(p==op||tokens[op].type==POINTOR||tokens[op].type==MINUS||tokens[op].type=='!'){
 			uint32_t val=eval(p+1,q);
 			switch(tokens[op].type){
+				case POINTOR:return swaddr_read(val,4);
 				case MINUS:return -val;
 				case '!':return !val;
 				default:Assert(1, "default\n");
