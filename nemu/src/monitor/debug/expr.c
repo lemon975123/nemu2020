@@ -147,12 +147,23 @@ int dominant_operator(int p, int q){
 		int p=tokens[i].priority;
 
 		if(t==NUMBER||t==HNUMBER||t==REGISTER) continue;
-		else if(t=='('){in_par++; continue;}
-		else if(t==')'){in_par--; continue;}
+		else if(t=='('){
+			in_par++;
+			continue;
+		}
+		else if(t==')'){
+			in_par--;
+			continue;
+		}
 		else{
 			if(p>=priority&&in_par==0){
 				priority=p;
-				pos=i;}}}return pos;}
+				pos=i;
+			}
+		}
+	}
+	return pos;
+}
 
 uint32_t eval(int p,int q){
         if(p>q){
@@ -189,18 +200,6 @@ uint32_t eval(int p,int q){
 				else assert(1);
 			}
 		}
-//		if(tokens[p].type==MARK){
-//			int i;
-//			for(i=0;i<nr_symtab_entry;i++){
-//				if((symtab[i].st_info&0xf)==STT_OBJECT){
-//					char tmp[32];
-//					int tmplen=symtab[i+1].st_name-symtab[i].st_name-1;
-//					strncpy(tmp, strtab+symtab[i].st_name,tmplen);
-//					tmp[tmplen]='\0';
-//					if(strcmp(tmp, tokens[p].str)==0) num =symtab[i].st_value;
-//				}
-//			}
-//		}
 		return num;
 	}
 	else if(check_parenthese(p,q)==true){
