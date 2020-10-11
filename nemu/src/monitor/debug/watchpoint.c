@@ -96,6 +96,7 @@ void delete_wp(int num){
 	WP *f;
 	f=&wp_pool[num];
 	free_wp(f);
+	printf("Delete watchpoint %d\n",num);
 }
 
 void info_wp(){
