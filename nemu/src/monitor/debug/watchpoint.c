@@ -102,7 +102,7 @@ void info_wp(){
 	WP *f;
 	f=head;
 	while(f!=NULL){
-		printf("Watchpoint %d: %s = %d\n",f->NO,f->expr,f->val);
+		printf("Watchpoint %d: %s  0x%08x\n",f->NO,f->expr,f->val);
 		f=f->next;
 	}
 }

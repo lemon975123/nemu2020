@@ -97,7 +97,7 @@ static int cmd_w(char *args){
 	f->val=expr(args,&suc);
 	strcpy(f->expr,args);
 	if(!suc) Assert(1,"wrong\n");
-	printf("Value : %d\n",f->val);
+	printf("Value : 0x%08x\n",f->val);
 	return 0;
 }
 
